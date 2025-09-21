@@ -1,0 +1,290 @@
+{
+  "name": "MCP Client Gmail Classifcation and Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        208
+      ],
+      "id": "9952d7b1-03fa-4352-a431-65509af83431",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "T1OuMOEN1t8vuE9l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.snippet }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "High Priority",
+              "description": "Emails that require immediate attention or quick response, often from executives, key clients, or internal stakeholders. These usually involve time-sensitive issues, deadlines, or escalations. Keywords/phrases to look for: “urgent,” “ASAP,” “immediate response,” “deadline,” “critical,” “important matter.”"
+            },
+            {
+              "category": "Promotion",
+              "description": "Emails related to marketing campaigns, sales offers, product launches, or event invitations. Typically sent in bulk and often contain discounts, new features, or company news. Keywords/phrases to look for: “special offer,” “discount,” “limited time,” “new product,” “webinar,” “sale,” “exclusive invite.”"
+            },
+            {
+              "category": "Finance/Billing",
+              "description": "Emails dealing with payments, invoices, receipts, or financial records. May come from vendors, clients, or internal finance teams. Usually involve transactions, balances, or account updates. Keywords/phrases to look for: “invoice,” “payment due,” “billing,” “receipt,” “account statement,” “refund,” “transaction.”"
+            },
+            {
+              "category": "Customer Support",
+              "description": "Emails from customers seeking help, troubleshooting, or service requests. Often include questions, complaints, or technical issues that require a response or resolution. Keywords/phrases to look for: “issue,” “not working,” “help,” “support needed,” “error,” “problem with,” “can you fix.”"
+            },
+            {
+              "category": "Personal",
+              "description": "Emails with casual, non-business content from individuals, such as greetings, updates, or private matters. Often include friendly language or informal topics unrelated to services. Keywords/phrases to look for: “hi friend,” “long time,” “family,” “catch up,” “how are you,” “personal update."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "768be427-15e9-41f8-b159-1b3322846508",
+      "name": "Text Classifier",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "position": [
+        -640,
+        -112
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour",
+              "minute": 1
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "id": "85f6ec50-b539-4ed5-97f1-e0d5d35f4c75",
+      "name": "Gmail Trigger1",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "position": [
+        -864,
+        -112
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jSGEH9MiBrm0ID2k",
+          "name": "Gmail account Arivu"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -240,
+        112
+      ],
+      "id": "887d055b-c371-4f4a-9ff7-32fba9a37161",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://resolved-coral-personally.ngrok-free.app/mcp/9589ddc7-ba17-48aa-9db7-d12a6d7468a2"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        -112,
+        112
+      ],
+      "id": "4c88f514-ff09-4d29-a593-63664ee6a0b0",
+      "name": "Gmail MCP"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sender Email ID - {{ $json.From }},\nMessage ID - {{ $json.id }},\nIncoming Mail -  {{ $json.snippet }}, Expected Lable -{{ $json.labels[3].name }}",
+        "options": {
+          "systemMessage": "=You are a helpful Email assistant.\n\nGMAIL MCP: use this to add labels or  send/reply emails or for marking emails as read/unread.\nTelegram MCP: use this to send message to telegram\nSlack MCP: Use this tool to send message to slack\n\nMap the incoming Mail label accordingly to the add label in MCP Client. Once Eamil is labelled, than reply to the senders email id using Reply mssg, only if the email is labelled as Customer Support/Personal/High Priority. After labelling make sure the message is marked as read.\n\nONLY IF the email is labelled as Customer Support/Personal/High Priority, send a text message to telegram on chat id: 5620067434  with a summarized message of {{$json.snippet}}\n\nONLY IF the email is labelled as Customer Support/Personal/High Priority, send a text message to \"all-arivu-ai\" channel in slack  with a summarized message of {{$json.snippet}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -144,
+        -112
+      ],
+      "id": "c7d82ae3-f479-4880-8dc5-7a723447db23",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://resolved-coral-personally.ngrok-free.app/mcp/3a6fa3bd-61b8-48ac-a2bf-53baebbcf014"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        112
+      ],
+      "id": "822f48bf-81ae-4479-baf6-3f648c61fcd6",
+      "name": "Telegram MCP"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://resolved-coral-personally.ngrok-free.app/mcp/f085195c-c38a-4b7f-b09f-90bae152a144"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        112
+      ],
+      "id": "a3dac874-a68e-42ce-a234-a5d502a77f40",
+      "name": "Slack MCP"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Telegram MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "35cbe818-bbda-4ca6-b0ca-4b413f03a3af",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "298041bc2608408beaaf79b703a9e506ed46b9ec7f9520bd3013aa10c2364612"
+  },
+  "id": "ezvL9U2IEqNgV8ri",
+  "tags": []
+}
