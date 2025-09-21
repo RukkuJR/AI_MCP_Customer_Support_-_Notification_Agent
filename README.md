@@ -1,4 +1,4 @@
-# 🤖 N8N AI-Powered Customer Support Automation
+# 🤖 N8N AI-Powered Notification & Customer Support Automation
 
 An intelligent email processing and notification system that automatically classifies incoming emails, prioritizes customer support requests, and distributes notifications across multiple platforms (Slack, Telegram) while maintaining proper email management workflows.
 
